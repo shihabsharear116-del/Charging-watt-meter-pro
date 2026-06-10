@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Stylized Battery Body inside standard safe margins -->
+    <path
+        android:fillColor="#06B6D4"
+        android:pathData="M38,30C35.8,30 34,31.8 34,34L34,76C34,78.2 35.8,80 38,80L70,80C72.2,80 74,78.2 74,76L74,34C74,31.8 72.2,30 70,30L62,30L62,24L46,30L38,30Z" />
+    <!-- Glowing Lightning Bolt cutout -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M56,38L45,54L53,54L49,72L63,50L53,50L56,38Z" />
+</vector>

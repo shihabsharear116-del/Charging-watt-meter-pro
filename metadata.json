@@ -1,0 +1,6 @@
+{
+  "name": "Charging Watt Meter Pro",
+  "description": "Monitor real-time charging power, voltage, current, battery temperature, battery health, charging speed, and charging analytics with a beautiful modern dark mode theme and AI Advisor.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
