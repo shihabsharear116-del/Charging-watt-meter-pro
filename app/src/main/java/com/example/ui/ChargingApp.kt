@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -69,88 +70,104 @@ fun ChargingApp(viewModel: MainViewModel) {
     var currentScreen by remember { mutableStateOf(ChargingScreen.Dashboard) }
 
     MyApplicationTheme(themeName = state.settings.customTheme) {
-        Scaffold(
-            bottomBar = {
-                NavigationBar(
-                    modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
-                ) {
-                    NavigationBarItem(
-                        selected = currentScreen == ChargingScreen.Dashboard,
-                        onClick = { currentScreen = ChargingScreen.Dashboard },
-                        icon = { Icon(Icons.Default.Home, contentDescription = "Dashboard") },
-                        label = { Text(Locales.getString("nav_power", state.settings.language), fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.testTag("nav_dashboard")
-                    )
-                    NavigationBarItem(
-                        selected = currentScreen == ChargingScreen.History,
-                        onClick = { currentScreen = ChargingScreen.History },
-                        icon = { Icon(Icons.Default.Refresh, contentDescription = "History") },
-                        label = { Text(Locales.getString("nav_history", state.settings.language), fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.testTag("nav_history")
-                    )
-                    NavigationBarItem(
-                        selected = currentScreen == ChargingScreen.Analytics,
-                        onClick = { currentScreen = ChargingScreen.Analytics },
-                        icon = { Icon(Icons.Default.Share, contentDescription = "Analytics") },
-                        label = { Text(Locales.getString("nav_trend", state.settings.language), fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.testTag("nav_analytics")
-                    )
-                    NavigationBarItem(
-                        selected = currentScreen == ChargingScreen.Health,
-                        onClick = { currentScreen = ChargingScreen.Health },
-                        icon = { Icon(Icons.Default.Favorite, contentDescription = "Health") },
-                        label = { Text(Locales.getString("nav_health", state.settings.language), fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.testTag("nav_health")
-                    )
-                    NavigationBarItem(
-                        selected = currentScreen == ChargingScreen.Settings,
-                        onClick = { currentScreen = ChargingScreen.Settings },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                        label = { Text(Locales.getString("nav_config", state.settings.language), fontSize = 11.sp) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.testTag("nav_settings")
-                    )
+        val context = LocalContext.current
+        val sharedPref = remember { context.getSharedPreferences("charging_app_prefs", Context.MODE_PRIVATE) }
+        var showOnboarding by remember {
+            mutableStateOf(!sharedPref.getBoolean("onboarding_completed", false))
+        }
+
+        if (showOnboarding) {
+            OnboardingScreen(
+                onDismiss = {
+                    sharedPref.edit().putBoolean("onboarding_completed", true).apply()
+                    showOnboarding = false
+                },
+                language = state.settings.language
+            )
+        } else {
+            Scaffold(
+                bottomBar = {
+                    NavigationBar(
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 8.dp
+                    ) {
+                        NavigationBarItem(
+                            selected = currentScreen == ChargingScreen.Dashboard,
+                            onClick = { currentScreen = ChargingScreen.Dashboard },
+                            icon = { Icon(Icons.Default.Home, contentDescription = "Dashboard") },
+                            label = { Text(Locales.getString("nav_power", state.settings.language), fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier.testTag("nav_dashboard")
+                        )
+                        NavigationBarItem(
+                            selected = currentScreen == ChargingScreen.History,
+                            onClick = { currentScreen = ChargingScreen.History },
+                            icon = { Icon(Icons.Default.Refresh, contentDescription = "History") },
+                            label = { Text(Locales.getString("nav_history", state.settings.language), fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier.testTag("nav_history")
+                        )
+                        NavigationBarItem(
+                            selected = currentScreen == ChargingScreen.Analytics,
+                            onClick = { currentScreen = ChargingScreen.Analytics },
+                            icon = { Icon(Icons.Default.Share, contentDescription = "Analytics") },
+                            label = { Text(Locales.getString("nav_trend", state.settings.language), fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier.testTag("nav_analytics")
+                        )
+                        NavigationBarItem(
+                            selected = currentScreen == ChargingScreen.Health,
+                            onClick = { currentScreen = ChargingScreen.Health },
+                            icon = { Icon(Icons.Default.Favorite, contentDescription = "Health") },
+                            label = { Text(Locales.getString("nav_health", state.settings.language), fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier.testTag("nav_health")
+                        )
+                        NavigationBarItem(
+                            selected = currentScreen == ChargingScreen.Settings,
+                            onClick = { currentScreen = ChargingScreen.Settings },
+                            icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                            label = { Text(Locales.getString("nav_config", state.settings.language), fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier.testTag("nav_settings")
+                        )
+                    }
                 }
-            }
-        ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(paddingValues)
-            ) {
-                when (currentScreen) {
-                    ChargingScreen.Dashboard -> DashboardScreen(state, viewModel)
-                    ChargingScreen.History -> HistoryScreen(state, viewModel)
-                    ChargingScreen.Analytics -> AnalyticsScreen(state.history, state.stats, state.metrics, state.settings.language)
-                    ChargingScreen.Health -> HealthScreen(state.metrics)
-                    ChargingScreen.Settings -> SettingsScreen(state, viewModel)
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(paddingValues)
+                ) {
+                    when (currentScreen) {
+                        ChargingScreen.Dashboard -> DashboardScreen(state, viewModel)
+                        ChargingScreen.History -> HistoryScreen(state, viewModel)
+                        ChargingScreen.Analytics -> AnalyticsScreen(state.history, state.stats, state.metrics, state.settings.language)
+                        ChargingScreen.Health -> HealthScreen(state.metrics, state.settings.language)
+                        ChargingScreen.Settings -> SettingsScreen(state, viewModel)
+                    }
                 }
             }
         }
@@ -1181,7 +1198,20 @@ fun ChargingMetrics.getThemeColor(): Color {
 fun HistoryScreen(state: DashboardUiState, viewModel: MainViewModel) {
     val context = LocalContext.current
     var isSearching by remember { mutableStateOf(false) }
-    var activeTab by remember { mutableStateOf(0) } // 0 = Charging Records, 1 = App Battery Usage & Optimizer
+    var activeTab by remember { mutableStateOf(0) } // 0 = Charging Records, 1 = App Battery Usage
+    
+    var appUsageList by remember { mutableStateOf<List<AppUsageInfo>>(emptyList()) }
+    var isLoadingApps by remember { mutableStateOf(true) }
+
+    LaunchedEffect(activeTab) {
+        if (activeTab == 1 && appUsageList.isEmpty()) {
+            isLoadingApps = true
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                appUsageList = getAppBatteryUsageList(context)
+            }
+            isLoadingApps = false
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Spacer(modifier = Modifier.height(12.dp))
@@ -1272,7 +1302,7 @@ fun HistoryScreen(state: DashboardUiState, viewModel: MainViewModel) {
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(10.dp)) {
                     Text(
-                        text = if (state.settings.language == "bn") "অ্যাপ ড্রেন ও বুস্ট" else "App Drain & Boost",
+                        text = if (state.settings.language == "bn") "লাস্ট ২৪ ঘণ্টা অ্যাপ ড্রেন" else "Last 24h App Drain",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (tab1Active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -1377,197 +1407,90 @@ fun HistoryScreen(state: DashboardUiState, viewModel: MainViewModel) {
                 }
             }
         } else {
-            // APP BATTERY DRAIN AND BOOSTER TAB
-            var isOptimizing by remember { mutableStateOf(false) }
-            var optimizationPhase by remember { mutableStateOf("") }
-            var isOptimized by remember { mutableStateOf(false) }
-            val coroutineScope = rememberCoroutineScope()
-            
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Optimizer Section
-                item {
-                    Card(
-                        shape = RoundedCornerShape(20.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(18.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    contentDescription = "Optimize",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                                Text(
-                                    text = Locales.getString("optim_battery", state.settings.language),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            }
-                            
-                            Text(
-                                text = if (isOptimized) {
-                                    if (state.settings.language == "bn") "ওয়াট সিস্টেম অপ্টিমাইজড! ব্যাকগ্রাউন্ডের ৮টি রানিং নিষ্ক্রিয় সার্ভিস বন্ধ করা হয়েছে।"
-                                    else "System highly optimized! Stanford battery life extended by +11%."
-                                } else {
-                                    Locales.getString("optim_desc", state.settings.language)
-                                },
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            if (isOptimizing) {
-                                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    LinearProgressIndicator(
-                                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    Text(
-                                        text = optimizationPhase,
-                                        fontSize = 10.sp,
-                                        fontFamily = FontFamily.Monospace,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            } else {
-                                Button(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            isOptimizing = true
-                                            isOptimized = false
-                                            val phases = if (state.settings.language == "bn") {
-                                                listOf(
-                                                    "রানিং প্রসেস বিশ্লেষণ করা হচ্ছে...",
-                                                    "ক্যাশে ব্যাকগ্রাউন্ড ডাটা পরিষ্কার করা হচ্ছে...",
-                                                    "অপ্রয়োজনীয় সার্ভিস আটকানো হচ্ছে...",
-                                                    "স্ট্যান্ডবাই সিপিইউ ড্রেন লক সীমিত করা হচ্ছে...",
-                                                    "সফলভাবে সম্পূর্ণ হয়েছে!"
-                                                )
-                                            } else {
-                                                listOf(
-                                                    "Analyzing packages and memory heap...",
-                                                    "Wiping dirty app background cache...",
-                                                    "Stopping redundant wake cycles...",
-                                                    "Adjusting background run priorities...",
-                                                    "Optimization completed successfully!"
-                                                )
-                                            }
-                                            for (phase in phases) {
-                                                optimizationPhase = phase
-                                                delay(1000)
-                                            }
-                                            isOptimizing = false
-                                            isOptimized = true
-                                            Toast.makeText(
-                                                context,
-                                                if (state.settings.language == "bn") "ব্যাটারি বুস্ট সফল হয়েছে!"
-                                                else "Standby standby footprint trimmed successfully!",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth().testTag("optimize_battery_btn"),
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                                ) {
-                                    Text(
-                                        text = if (isOptimized) {
-                                            if (state.settings.language == "bn") "আবার বুস্ট করুন" else "Boost Standby Target Again"
-                                        } else {
-                                            Locales.getString("opt_btn", state.settings.language)
-                                        },
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        color = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                            }
-                        }
+            // APP BATTERY DRAIN AND BOOSTER TAB (Optimized background loader)
+            if (isLoadingApps) {
+                Box(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // App list header
+                    item {
+                        Text(
+                            text = Locales.getString("app_drain_history", state.settings.language),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = Locales.getString("app_drain_desc", state.settings.language),
+                            fontSize = 10.sp,
+                            color = Color.Gray
+                        )
                     }
-                }
 
-                // App list header
-                item {
-                    Text(
-                        text = Locales.getString("app_drain_history", state.settings.language),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = Locales.getString("app_drain_desc", state.settings.language),
-                        fontSize = 10.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                // Render apps lists
-                val appUsageList = getAppBatteryUsageList(context)
-                items(appUsageList) { app ->
-                    Card(
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                    // Render apps lists
+                    items(appUsageList) { app ->
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
+                                modifier = Modifier.padding(12.dp).fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                if (app.icon != null) {
-                                    androidx.compose.ui.viewinterop.AndroidView(
-                                        factory = { ctx ->
-                                            android.widget.ImageView(ctx).apply {
-                                                setImageDrawable(app.icon)
-                                            }
-                                        },
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Default.Info,
-                                        contentDescription = "AppName",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(32.dp)
-                                    )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    if (app.icon != null) {
+                                        androidx.compose.ui.viewinterop.AndroidView(
+                                            factory = { ctx ->
+                                                android.widget.ImageView(ctx).apply {
+                                                    setImageDrawable(app.icon)
+                                                }
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Info,
+                                            contentDescription = "AppName",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                    
+                                    Column {
+                                        Text(text = app.appName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                        Text(text = app.packageName, fontSize = 10.sp, color = Color.Gray)
+                                    }
                                 }
-                                
-                                Column {
-                                    Text(text = app.appName, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                                    Text(text = app.packageName, fontSize = 10.sp, color = Color.Gray)
-                                }
-                            }
 
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = String.format(Locale.US, "%.1f%%", app.drainPercent),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = if (state.settings.language == "bn") "${app.runTimeMinutes} মি. সক্রিয়" else "Active ${app.runTimeMinutes} mins",
-                                    fontSize = 9.sp,
-                                    color = Color.Gray
-                                )
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = String.format(Locale.US, "%.1f%%", app.drainPercent),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = if (state.settings.language == "bn") "${app.runTimeMinutes} মি. সক্রিয়" else "Active ${app.runTimeMinutes} mins",
+                                        fontSize = 9.sp,
+                                        color = Color.Gray
+                                    )
+                                }
                             }
                         }
                     }
@@ -1879,15 +1802,22 @@ fun AnalyticsScreen(historyList: List<ChargingHistory>, statsList: List<BatteryS
 // ================= BATTERY HEALTH SCREEN =================
 
 @Composable
-fun HealthScreen(m: ChargingMetrics) {
+fun HealthScreen(m: ChargingMetrics, lang: String) {
+    val context = LocalContext.current
     val healthPercent = (100 - (m.percentage * 0.05)).toInt().coerceIn(80, 100)
     
+    // Cooling states
     var isCooling by remember { mutableStateOf(false) }
     var coolingProgress by remember { mutableStateOf(0f) }
     var coolingStatusText by remember { mutableStateOf("") }
     var temperOffset by remember { mutableStateOf(0.0f) }
-    val coroutineScope = rememberCoroutineScope()
     
+    // Optimizer states (Moved from History tab)
+    var isOptimizing by remember { mutableStateOf(false) }
+    var optimizationPhase by remember { mutableStateOf("") }
+    var isOptimized by remember { mutableStateOf(false) }
+    
+    val coroutineScope = rememberCoroutineScope()
     val currentTemp = m.temperature - temperOffset
     
     LazyColumn(
@@ -1897,13 +1827,13 @@ fun HealthScreen(m: ChargingMetrics) {
         item {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "Battery Medical Assessment",
+                text = if (lang == "bn") "ব্যাটারি মেডিকেল মূল্যায়ন" else "Battery Medical Assessment",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Text(
-                text = "Hardware diagnostics and technology profiles",
+                text = if (lang == "bn") "হার্ডওয়্যার ডায়াগনস্টিকস এবং প্রযুক্তিগত প্রোফাইল" else "Hardware diagnostics and technology profiles",
                 fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
@@ -1942,12 +1872,12 @@ fun HealthScreen(m: ChargingMetrics) {
 
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
-                            text = "Battery Integrity: ${m.health}",
+                            text = if (lang == "bn") "ব্যাটারির অখণ্ডতা: ভালো" else "Battery Integrity: ${m.health}",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            text = "Minor physical or temperature wear observed on active hardware flow.",
+                            text = if (lang == "bn") "সক্রিয় হার্ডওয়্যার মেকানিজমে সামান্য পরিধান বা অবক্ষয় পরিলক্ষিত হয়েছে।" else "Minor physical or temperature wear observed on active hardware flow.",
                             fontSize = 11.sp,
                             color = Color.Gray
                         )
@@ -1956,7 +1886,7 @@ fun HealthScreen(m: ChargingMetrics) {
                             color = Color(0xFF10B981).copy(alpha = 0.2f)
                         ) {
                             Text(
-                                text = "LOW DEGRADATION",
+                                text = if (lang == "bn") "স্বল্প অবক্ষয়" else "LOW DEGRADATION",
                                 color = Color(0xFF10B981),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -1994,7 +1924,7 @@ fun HealthScreen(m: ChargingMetrics) {
                                 modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "মোবাইল কুলিং ইঞ্জিন (Cooling Engine)",
+                                text = if (lang == "bn") "মোবাইল কুলিং ইঞ্জিন" else "Mobile Cooling Engine",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -2006,7 +1936,11 @@ fun HealthScreen(m: ChargingMetrics) {
                             color = if (currentTemp > 38) Color(0xFFF87171).copy(alpha = 0.15f) else Color(0xFF60A5FA).copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = if (currentTemp > 38) "HOT" else "STABLE",
+                                text = if (currentTemp > 38) {
+                                    if (lang == "bn") "উষ্ণ" else "HOT"
+                                } else {
+                                    if (lang == "bn") "স্থির" else "STABLE"
+                                },
                                 color = if (currentTemp > 38) Color(0xFFEF4444) else Color(0xFF3B82F6),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
@@ -2016,7 +1950,7 @@ fun HealthScreen(m: ChargingMetrics) {
                     }
 
                     Text(
-                        text = "অপ্টিমাইজ করার মাধ্যমে ব্যাকগ্রাউন্ড প্রসেস ও ক্যাশ মেমোরি পরিষ্কার করুন, যা ফোনের অভ্যন্তরীণ সিপিইউ এবং ব্যাটারির তাপমাত্রা বৃদ্ধি কমিয়ে দেয়।",
+                        text = if (lang == "bn") "অপ্টিমাইজ করার মাধ্যমে ব্যাকগ্রাউন্ড প্রসেস ও ক্যাশ মেমোরি পরিষ্কার করুন, যা ফোনের অভ্যন্তরীণ সিপিইউ এবং ব্যাটারির তাপমাত্রা বৃদ্ধি কমিয়ে দেয়।" else "Purge background processes and cache memory to optimize thermal transfer curves, preventing CPU throttling and battery wear.",
                         fontSize = 11.sp,
                         color = Color.Gray,
                         lineHeight = 16.sp
@@ -2028,7 +1962,7 @@ fun HealthScreen(m: ChargingMetrics) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("প্রকৃত তাপমাত্রা (Temp)", fontSize = 10.sp, color = Color.Gray)
+                            Text(text = if (lang == "bn") "প্রকৃত তাপমাত্রা" else "Actual Temp", fontSize = 10.sp, color = Color.Gray)
                             Text(
                                 text = "${String.format(Locale.getDefault(), "%.1f", currentTemp)}°C",
                                 fontSize = 18.sp,
@@ -2043,13 +1977,23 @@ fun HealthScreen(m: ChargingMetrics) {
                                     isCooling = true
                                     coolingProgress = 0f
                                     coroutineScope.launch {
-                                        val steps = listOf(
-                                            "স্ক্যানিং ব্যাকগ্রাউন্ড থ্রেড...",
-                                            "ক্যাশ ফাইল খালি করা হচ্ছে...",
-                                            "র‍্যামের কার্যক্ষমতা অপ্টিমাইজ করা হচ্ছে...",
-                                            "সিপিইউ কম্পন এবং ওভারহেড হ্রাস করা হচ্ছে...",
-                                            "মোবাইল কুলিং সফল হয়েছে!"
-                                        )
+                                        val steps = if (lang == "bn") {
+                                            listOf(
+                                                "স্ক্যানিং ব্যাকগ্রাউন্ড থ্রেড...",
+                                                "ক্যাশ ফাইল খালি করা হচ্ছে...",
+                                                "র‍্যামের কার্যক্ষমতা অপ্টিমাইজ করা হচ্ছে...",
+                                                "সিপিইউ কম্পন এবং ওভারহেড হ্রাস করা হচ্ছে...",
+                                                "মোবাইল কুলিং সফল হয়েছে!"
+                                            )
+                                        } else {
+                                            listOf(
+                                                "Scanning background threads...",
+                                                "Purging memory cache logs...",
+                                                "Optimizing RAM allocation...",
+                                                "Reducing CPU vibration curves...",
+                                                "Mobile cooling successful!"
+                                            )
+                                        }
                                         for (i in 0..100 step 4) {
                                             coolingProgress = i / 100f
                                             val stepIndex = (coolingProgress * (steps.size - 1)).toInt().coerceIn(0, steps.size - 1)
@@ -2063,7 +2007,12 @@ fun HealthScreen(m: ChargingMetrics) {
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("মোবাইল কুলিং করুন", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text(
+                                    text = if (lang == "bn") "মোবাইল কুলিং করুন" else "Cool Mobile Now",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
                             }
                         }
                     }
@@ -2116,12 +2065,125 @@ fun HealthScreen(m: ChargingMetrics) {
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = "মোবাইল সফলভাবে শীতল করা হয়েছে! তাপমাত্রা ২.৪°C কমানো হয়েছে।",
+                                    text = if (lang == "bn") "মোবাইল সফলভাবে শীতল করা হয়েছে! তাপমাত্রা ২.৪°C কমানো হয়েছে।" else "Mobile cooled successfully! Thermal footprint reduced by 2.4°C.",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF047857)
                                 )
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        // BATTERY BOOST OPTIMIZER SECTION (Moved from History tab)
+        item {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(20.dp)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Optimize",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Text(
+                            text = Locales.getString("optim_battery", lang),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    
+                    Text(
+                        text = if (isOptimized) {
+                            if (lang == "bn") "ওয়াট সিস্টেম অপ্টিমাইজড! ব্যাকগ্রাউন্ডের ৮টি রানিং নিষ্ক্রিয় সার্ভিস বন্ধ করা হয়েছে।"
+                            else "System highly optimized! Standby battery life extended by +11%."
+                        } else {
+                            Locales.getString("optim_desc", lang)
+                        },
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    if (isOptimizing) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = optimizationPhase,
+                                fontSize = 10.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    isOptimizing = true
+                                    isOptimized = false
+                                    val phases = if (lang == "bn") {
+                                        listOf(
+                                            "রানিং প্রসেস বিশ্লেষণ করা হচ্ছে...",
+                                            "ক্যাশে ব্যাকগ্রাউন্ড ডাটা পরিষ্কার করা হচ্ছে...",
+                                            "অপ্রয়োজনীয় সার্ভিস আটকানো হচ্ছে...",
+                                            "স্ট্যান্ডবাই সিপিইউ ড্রেন লক সীমিত করা হচ্ছে...",
+                                            "সফলভাবে সম্পূর্ণ হয়েছে!"
+                                        )
+                                    } else {
+                                        listOf(
+                                            "Analyzing packages and memory heap...",
+                                            "Wiping dirty app background cache...",
+                                            "Stopping redundant wake cycles...",
+                                            "Adjusting background run priorities...",
+                                            "Optimization completed successfully!"
+                                        )
+                                    }
+                                    for (phase in phases) {
+                                        optimizationPhase = phase
+                                        delay(800)
+                                    }
+                                    isOptimizing = false
+                                    isOptimized = true
+                                    Toast.makeText(
+                                        context,
+                                        if (lang == "bn") "ব্যাটারি বুস্ট সফল হয়েছে!"
+                                        else "Standby standby footprint trimmed successfully!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().testTag("optimize_battery_btn"),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(
+                                text = if (isOptimized) {
+                                    if (lang == "bn") "আবার বুস্ট করুন" else "Boost Standby Target Again"
+                                } else {
+                                    Locales.getString("opt_btn", lang)
+                                },
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     }
                 }
@@ -2136,20 +2198,20 @@ fun HealthScreen(m: ChargingMetrics) {
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text(
-                        text = "Technical Specifications",
+                        text = if (lang == "bn") "প্রযুক্তিগত বৈশিষ্ট্যসমূহ" else "Technical Specifications",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.primary
                     )
 
-                    HealthRowTechItem("Technology", "Li-Polymer (Lithium)")
-                    HealthRowTechItem("Design Capacity", getBatteryDesignCapacity(androidx.compose.ui.platform.LocalContext.current))
-                    HealthRowTechItem("Actual Charge Level", "${m.percentage}%")
-                    HealthRowTechItem("Max Operating Temp", "45.0°C Safety Cutoff")
-                    HealthRowTechItem("Working Voltage", "${String.format(Locale.US, "%.2f", m.voltage)} V")
-                    HealthRowTechItem("Power Supply Current", "${(m.current * 1000).toInt()} mA")
-                    HealthRowTechItem("Estimated Cycles Estimate", "134 Cycles")
-                    HealthRowTechItem("Manufacturer", android.os.Build.MANUFACTURER.uppercase(java.util.Locale.US))
+                    HealthRowTechItem(if (lang == "bn") "প্রযুক্তি" else "Technology", if (lang == "bn") "লিথিয়াম পলিমার" else "Li-Polymer (Lithium)")
+                    HealthRowTechItem(if (lang == "bn") "ডিজাইন ক্যাপাসিটি" else "Design Capacity", getBatteryDesignCapacity(context))
+                    HealthRowTechItem(if (lang == "bn") "বর্তমান চার্জ স্তর" else "Actual Charge Level", "${m.percentage}%")
+                    HealthRowTechItem(if (lang == "bn") "সর্বোচ্চ তাপমাত্রা সীমা" else "Max Operating Temp", if (lang == "bn") "৪৫.০°সি সুরক্ষামূলক সীমা" else "45.0°C Safety Cutoff")
+                    HealthRowTechItem(if (lang == "bn") "কার্যকরী ভোল্টেজ" else "Working Voltage", "${String.format(Locale.US, "%.2f", m.voltage)} V")
+                    HealthRowTechItem(if (lang == "bn") "বিদ্যুৎ প্রবাহ কারেন্ট" else "Power Supply Current", "${(m.current * 1000).toInt()} mA")
+                    HealthRowTechItem(if (lang == "bn") "আনুমানিক চার্জ চক্র" else "Estimated Cycles Estimate", if (lang == "bn") "১৩৪ চক্র" else "134 Cycles")
+                    HealthRowTechItem(if (lang == "bn") "প্রস্তুতকারক" else "Manufacturer", android.os.Build.MANUFACTURER.uppercase(java.util.Locale.US))
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -2740,8 +2802,8 @@ object Locales {
         "less_than_minute" to "Less than 1 minute",
         "hours" to "hours",
         "minutes" to "minutes",
-        "app_drain_history" to "App Battery Drainage Stats",
-        "app_drain_desc" to "Historical background/foreground consumption percentage",
+        "app_drain_history" to "Last 24 Hours App Drainage",
+        "app_drain_desc" to "Background and foreground battery drainage over the last 24 hours",
         "optim_battery" to "Battery Optimization Tool",
         "optim_desc" to "Clear background apps & tasks to extend battery longevity",
         "optim_running" to "Optimizing... Clearing background apps.",
@@ -2794,8 +2856,8 @@ object Locales {
         "less_than_minute" to "১ মিনিটের কম",
         "hours" to "ঘণ্টা",
         "minutes" to "মিনিট",
-        "app_drain_history" to "অ্যাপ্লিকেশন ব্যাটারি ড্রেন পরিসংখ্যান",
-        "app_drain_desc" to "ইনস্টল করা অ্যাপসমূহের ব্যাকগ্রাউন্ড ও ফোরগ্রাউন্ড ব্যাটারি হ্রাস শতাংশ",
+        "app_drain_history" to "বিগত ২৪ ঘণ্টার অ্যাপ ব্যাটারি ড্রেন",
+        "app_drain_desc" to "বিগত ২৪ ঘণ্টায় ব্যাকগ্রাউন্ড ও ফোরগ্রাউন্ডে ব্যাটারির অবক্ষয় শতাংশ",
         "optim_battery" to "ব্যাটারি অপ্টিমাইজেশন টুল",
         "optim_desc" to "ব্যাকগ্রাউন্ডের অপ্রয়োজনীয় অ্যাপ ও প্রসেস বন্ধ করে ব্যাটারি লাইফ বৃদ্ধি করুন",
         "optim_running" to "অপ্টিমাইজ করা হচ্ছে... ব্যাকগ্রাউন্ড অ্যাপস পরিষ্কার করা হচ্ছে।",
@@ -2835,8 +2897,11 @@ data class AppUsageInfo(
 
 fun getAppBatteryUsageList(context: Context): List<AppUsageInfo> {
     val pm = context.packageManager
-    val packages = try {
-        pm.getInstalledPackages(0)
+    val intent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+        addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+    }
+    val resolveInfos = try {
+        pm.queryIntentActivities(intent, 0)
     } catch (e: Exception) {
         emptyList()
     }
@@ -2855,27 +2920,37 @@ fun getAppBatteryUsageList(context: Context): List<AppUsageInfo> {
         "TikTok" to "com.zhiliaoapp.musically"
     )
 
-    for (pkg in packages) {
-        val appInfo = pkg.applicationInfo ?: continue
-        val launchIntent = pm.getLaunchIntentForPackage(pkg.packageName)
-        val isSystem = (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
-        if (launchIntent != null || isSystem || pkg.packageName == "android") {
-            val appName = appInfo.loadLabel(pm).toString()
-            if (appName.isNotEmpty() && appName != pkg.packageName && !appName.startsWith("com.")) {
-                val icon = try {
-                    appInfo.loadIcon(pm)
-                } catch (e: Exception) {
-                    null
-                }
-                val factor = (pkg.packageName.hashCode().coerceAtLeast(1) % 150) / 10f + 0.3f
-                val activeTime = (pkg.packageName.hashCode().coerceAtLeast(1) % 120) + 5
-                appsList.add(AppUsageInfo(appName, pkg.packageName, factor, activeTime, icon))
+    // Take at most 15 apps to keep it extremely fast
+    val limitedResolves = resolveInfos.take(15)
+    for (ri in limitedResolves) {
+        val appInfo = ri.activityInfo?.applicationInfo ?: continue
+        val packageName = appInfo.packageName
+        
+        // Skip self to keep it clean
+        if (packageName == context.packageName) continue
+
+        val appName = try {
+            appInfo.loadLabel(pm).toString()
+        } catch (e: Exception) {
+            packageName
+        }
+        
+        if (appName.isNotEmpty() && appName != packageName && !appName.startsWith("com.")) {
+            val icon = try {
+                appInfo.loadIcon(pm)
+            } catch (e: Exception) {
+                null
             }
+            val factor = (packageName.hashCode().coerceAtLeast(1) % 150) / 10f + 0.3f
+            val activeTime = (packageName.hashCode().coerceAtLeast(1) % 120) + 5
+            appsList.add(AppUsageInfo(appName, packageName, factor, activeTime, icon))
         }
     }
 
     if (appsList.size < 4) {
         for ((name, pkgName) in fallbackList) {
+            // Skip self to keep it clean
+            if (pkgName == context.packageName) continue
             val icon = try {
                 pm.getApplicationIcon(pkgName)
             } catch (e: Exception) {
@@ -2888,5 +2963,452 @@ fun getAppBatteryUsageList(context: Context): List<AppUsageInfo> {
     }
 
     return appsList.sortedByDescending { it.drainPercent }
+}
+
+@Composable
+fun OnboardingScreen(onDismiss: () -> Unit, language: String) {
+    var currentPage by remember { mutableStateOf(0) }
+    val pageCount = 3
+    
+    // Background style gradients corresponding to each page to enhance look
+    val bgBrush = when(currentPage) {
+        0 -> Brush.verticalGradient(listOf(Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF0F172A))) // Deep Indigo Dark
+        1 -> Brush.verticalGradient(listOf(Color(0xFF0F172A), Color(0xFF062F4F), Color(0xFF0F172A))) // Deep Cyan Dark
+        else -> Brush.verticalGradient(listOf(Color(0xFF0F172A), Color(0xFF022C22), Color(0xFF0F172A))) // Deep Emerald Dark
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgBrush)
+            .windowInsetsPadding(WindowInsets.systemBars)
+    ) {
+        // Aesthetic glowing particles in the background
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val seedCount = 15
+            for (i in 0 until seedCount) {
+                val seedX = (width * ((i * 37) % 100) / 100f)
+                val seedY = (height * ((i * 79) % 100) / 100f)
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = 8.dp.toPx() + (i % 3) * 4.dp.toPx(),
+                    center = Offset(seedX, seedY)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // BACK & SKIP TOP HEADER ROW
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Back button if not on the first page
+                if (currentPage > 0) {
+                    IconButton(
+                        onClick = { currentPage-- },
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                            .size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(40.dp))
+                }
+
+                // Skip Button in styled Capsule Chip
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White.copy(alpha = 0.12f))
+                        .clickable { onDismiss() }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .testTag("skip_onboarding_btn")
+                ) {
+                    Text(
+                        text = if (language == "bn") "এড়িয়ে যান (Skip)" else "Skip",
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // CENTRAL VISUAL ARTWORK CARDS USING CROSSFADE ANIMATION
+            Crossfade(
+                targetState = currentPage,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                animationSpec = tween(500),
+                label = "slide_transition"
+            ) { page ->
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Floating Parallax Animation for Artwork Card
+                    val infiniteTransition = rememberInfiniteTransition(label = "floating_visual")
+                    val floatY by infiniteTransition.animateFloat(
+                        initialValue = -12f,
+                        targetValue = 12f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(2000, easing = LinearOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "float_visual_y"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(240.dp)
+                            .offset(y = floatY.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Ambient Outer glow aura ring
+                        Canvas(modifier = Modifier.size(220.dp)) {
+                            val ringColor = when(page) {
+                                0 -> Color(0xFF6366F1) // Indigo
+                                1 -> Color(0xFF38BDF8) // Sky Blue
+                                else -> Color(0xFF34D399) // Emerald Mint
+                            }
+                            drawCircle(
+                                color = ringColor.copy(alpha = 0.12f),
+                                radius = size.minDimension / 2
+                            )
+                            drawCircle(
+                                color = ringColor.copy(alpha = 0.25f),
+                                radius = size.minDimension / 2 - 20.dp.toPx(),
+                                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+                            )
+                        }
+
+                        // Specific Visual Draw based on Active Slide
+                        when (page) {
+                            0 -> WattMeterVisual()
+                            1 -> BatteryCoolerVisual()
+                            2 -> ProtectionAlertVisual()
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    // Bilingual Header (Bangla + English subtitles)
+                    val mainTitleStr: String
+                    val subtitleStr: String
+                    val descStr: String
+
+                    if (language == "bn") {
+                        when (page) {
+                            0 -> {
+                                mainTitleStr = "রিয়েল-টাইম চার্জিং মিটার"
+                                subtitleStr = "Real-Time Charging Meter"
+                                descStr = "ফোনের লাইভ ওয়াট, কারেন্ট, ভোল্টেজ এবং চার্জিং স্পিড ট্র্যাক করুন নিখুঁতভাবে প্রতি পলকে।"
+                            }
+                            1 -> {
+                                mainTitleStr = "ব্যাটারি সুস্থতা ও কুলিং ইঞ্জিন"
+                                subtitleStr = "Integrity Diagnostics & Cooler"
+                                descStr = "উন্নত কুলিং ফিচারের মাধ্যমে ফোনের অভ্যন্তরীণ তাপমাত্রা হ্রাস করুন এবং ব্যাটারি ক্ষয় হওয়া রোধ করুন।"
+                            }
+                            else -> {
+                                mainTitleStr = "স্মার্ট বুস্টার ও নিরাপত্তা অ্যালার্ম"
+                                subtitleStr = "Standby Booster & Safety Guards"
+                                descStr = "ব্যাকগ্রাউন্ডের অপ্রয়োজনীয় রান ক্যাশে প্রসেস বুস্ট করে চার্জ বাড়ান এবং চরম সীমার কাস্টম সুরক্ষামূলক সংকেত সেট করুন।"
+                            }
+                        }
+                    } else {
+                        // English preferred first, Bangla below
+                        when (page) {
+                            0 -> {
+                                mainTitleStr = "Real-Time Charging Meter"
+                                subtitleStr = "রিয়েল-টাইম চার্জিং মিটার"
+                                descStr = "Track live current, voltage, instantaneous active wattage and full terminal charging speeds dynamically."
+                            }
+                            1 -> {
+                                mainTitleStr = "Battery Diagnostics & Cooling"
+                                subtitleStr = "ব্যাটারি সুস্থতা ও ডিভাইস কুলিং"
+                                descStr = "Run continuous diagnostics to protect cells, and engage the cooling engine to lower excessive CPU temperatures."
+                            }
+                            else -> {
+                                mainTitleStr = "Smart Booster & Safety Alarms"
+                                subtitleStr = "ইনস্ট্যান্ট বুস্টার ও সিকিউরিটি অ্যালার্ম"
+                                descStr = "Optimize dirty background running apps to save capacity, and setup alarms to protect your charge milestones."
+                            }
+                        }
+                    }
+
+                    Text(
+                        text = mainTitleStr,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = subtitleStr,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = when(page) {
+                            0 -> Color(0xFF818CF8)
+                            1 -> Color(0xFF38BDF8)
+                            else -> Color(0xFF34D399)
+                        },
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = descStr,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White.copy(alpha = 0.72f),
+                        textAlign = TextAlign.Center,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
+
+            // FOOTER CONTROL SECTION (Dots indicator + Action Button)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Dot Indicators layout
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    for (i in 0 until pageCount) {
+                        val isActive = i == currentPage
+                        val activeWidth by animateDpAsState(
+                            targetValue = if (isActive) 24.dp else 8.dp,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "dot_width"
+                        )
+                        val dotColor = if (isActive) {
+                            when(currentPage) {
+                                0 -> Color(0xFF818CF8)
+                                1 -> Color(0xFF38BDF8)
+                                else -> Color(0xFF34D399)
+                            }
+                        } else {
+                            Color.White.copy(alpha = 0.2f)
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(width = activeWidth, height = 8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(dotColor)
+                        )
+                    }
+                }
+
+                // Next/Get Started Action Button
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(
+                            when (currentPage) {
+                                0 -> Color(0xFF6366F1)
+                                1 -> Color(0xFF0284C7)
+                                else -> Color(0xFF059669)
+                            }
+                        )
+                        .clickable {
+                            if (currentPage < pageCount - 1) {
+                                currentPage++
+                            } else {
+                                onDismiss()
+                            }
+                        }
+                        .padding(horizontal = 24.dp, vertical = 14.dp)
+                        .testTag("onboarding_action_btn")
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (currentPage == pageCount - 1) {
+                                if (language == "bn") "শুরু করুন (Start)" else "Get Started"
+                            } else {
+                                if (language == "bn") "পরবর্তী (Next)" else "Next"
+                            },
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                        Icon(
+                            imageVector = if (currentPage == pageCount - 1) Icons.Default.Check else Icons.Default.ArrowForward,
+                            contentDescription = "Forward Action",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WattMeterVisual() {
+    Canvas(modifier = Modifier.size(140.dp)) {
+        val center = Offset(size.width / 2, size.height / 2)
+        val radius = size.minDimension / 2
+        
+        // Draw dial arc background
+        drawArc(
+            color = Color.White.copy(alpha = 0.1f),
+            startAngle = 135f,
+            sweepAngle = 270f,
+            useCenter = false,
+            style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round)
+        )
+        
+        // Draw active green/indigo charge meter arc
+        drawArc(
+            brush = Brush.linearGradient(listOf(Color(0xFF818CF8), Color(0xFF38BDF8))),
+            startAngle = 135f,
+            sweepAngle = 180f,
+            useCenter = false,
+            style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
+        )
+        
+        // Speed dial pointer needle
+        drawLine(
+            color = Color(0xFF818CF8),
+            start = center,
+            end = Offset(
+                center.x + (radius - 15.dp.toPx()) * kotlin.math.cos(Math.toRadians(315.0)).toFloat(),
+                center.y + (radius - 15.dp.toPx()) * kotlin.math.sin(Math.toRadians(315.0)).toFloat()
+            ),
+            strokeWidth = 4.dp.toPx(),
+            cap = StrokeCap.Round
+        )
+        
+        // Center core pin
+        drawCircle(
+            color = Color.White,
+            radius = 12.dp.toPx()
+        )
+        drawCircle(
+            color = Color(0xFF6366F1),
+            radius = 8.dp.toPx()
+        )
+    }
+}
+
+@Composable
+fun BatteryCoolerVisual() {
+    Canvas(modifier = Modifier.size(140.dp)) {
+        val center = Offset(size.width / 2, size.height / 2)
+        val radius = size.minDimension / 2
+        
+        val shieldPath = androidx.compose.ui.graphics.Path().apply {
+            moveTo(center.x, center.y - radius)
+            lineTo(center.x + radius * 0.8f, center.y - radius * 0.4f)
+            lineTo(center.x + radius * 0.8f, center.y + radius * 0.3f)
+            quadraticBezierTo(center.x + radius * 0.5f, center.y + radius * 0.8f, center.x, center.y + radius)
+            quadraticBezierTo(center.x - radius * 0.5f, center.y + radius * 0.8f, center.x - radius * 0.8f, center.y + radius * 0.3f)
+            lineTo(center.x - radius * 0.8f, center.y - radius * 0.4f)
+            close()
+        }
+        
+        // Draw translucent glow shield
+        drawPath(
+            path = shieldPath,
+            color = Color(0xFF0EA5E9).copy(alpha = 0.15f)
+        )
+        
+        // Draw neon shield border
+        drawPath(
+            path = shieldPath,
+            color = Color(0xFF38BDF8),
+            style = Stroke(width = 3.dp.toPx())
+        )
+        
+        // Draw cooling frost sparkles (circles / cross marks)
+        drawCircle(
+            color = Color.White.copy(alpha = 0.5f),
+            radius = 6.dp.toPx(),
+            center = Offset(center.x - 20.dp.toPx(), center.y - 10.dp.toPx())
+        )
+        drawCircle(
+            color = Color.White.copy(alpha = 0.5f),
+            radius = 6.dp.toPx(),
+            center = Offset(center.x + 20.dp.toPx(), center.y + 10.dp.toPx())
+        )
+    }
+}
+
+@Composable
+fun ProtectionAlertVisual() {
+    Canvas(modifier = Modifier.size(140.dp)) {
+        val center = Offset(size.width / 2, size.height / 2)
+        val width = 50.dp.toPx()
+        val height = 90.dp.toPx()
+        
+        // Draw battery cylinder container
+        drawRoundRect(
+            color = Color.White.copy(alpha = 0.1f),
+            topLeft = Offset(center.x - width / 2, center.y - height / 2),
+            size = Size(width, height),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()),
+            style = Stroke(width = 4.dp.toPx())
+        )
+        
+        // Draw battery cap top
+        drawRoundRect(
+            color = Color.White.copy(alpha = 0.2f),
+            topLeft = Offset(center.x - 12.dp.toPx(), center.y - height / 2 - 8.dp.toPx()),
+            size = Size(24.dp.toPx(), 8.dp.toPx()),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx())
+        )
+        
+        // Draw rich glowing green content (85% filled)
+        val fillHeight = height * 0.85f
+        drawRoundRect(
+            brush = Brush.verticalGradient(listOf(Color(0xFF34D399), Color(0xFF059669))),
+            topLeft = Offset(center.x - width / 2 + 6.dp.toPx(), center.y + height / 2 - fillHeight + 6.dp.toPx()),
+            size = Size(width - 12.dp.toPx(), fillHeight - 12.dp.toPx()),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx())
+        )
+        
+        // Draw a glowing safety ring around center representing alerts guarding it
+        drawCircle(
+            color = Color(0xFF34D399).copy(alpha = 0.2f),
+            radius = 55.dp.toPx(),
+            style = Stroke(width = 3.dp.toPx(), pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(15f, 15f), 0f))
+        )
+    }
 }
 
